@@ -10,6 +10,7 @@ let ToDoItems = require('../models/todoModel');
 
 app.use(express.json()); // body-parser middleware
 
+//Chekcs if an appropriate body has been provided
 function validateToDoItem(req, res, next){
     let properties = ['name', 'priority'];
     for(property of properties){
@@ -22,6 +23,7 @@ function validateToDoItem(req, res, next){
       next();
 }
 
+//POST request which adds the body if validateToDoItem method returns true (body matches document format)
 router.post('/', validateToDoItem, (req,res)=>{
     ToDoItems.find(function(err, result){
         let newItem = new ToDoItems({
@@ -41,6 +43,36 @@ router.post('/', validateToDoItem, (req,res)=>{
 			res.status(200).send(result);
         });
     });
+});
+
+//GET request: returns all items 
+router.get('/', (req,res)=>{
+    res.format({
+        'application/json': ()=>{
+            res.set('Content-Type', 'application/json');
+            ToDoItems.find(function(err, result){
+                if(result === undefined){
+                    res.status(404).send("To do list is empty");
+                }
+                else if(result !== undefined){
+                    res.status(200).set("Content-Type", "application/json").json(result);
+                }
+                else{
+                    res.status(500).send("Unkown error");
+                }
+            });
+        }
+    });
+});
+
+router.delete('/:id',(req,res)=>{
+    try{
+        const task = ToDoItems.find({_id: req.params.id}).remove().exec();
+        res.status(200).send(task);
+    }
+    catch(error){
+        res.status(500).send(error);
+    }
 });
 
 
