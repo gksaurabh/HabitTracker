@@ -1,4 +1,5 @@
 // This module is cached as it has already been loaded
+const { log } = require('console');
 const express = require('express');
 const req = require('express/lib/request');
 const fs = require('fs');
@@ -74,6 +75,31 @@ router.delete('/:id',(req,res)=>{
         res.status(500).send(error);
     }
 });
+
+
+function validateToDoItemBody(req ,res, next){
+    let properties = ['name','priority'];
+    for (property of properties){
+        if (!req.body.hasOwnProperty(property))
+			return res.status(400).send("Bad request");
+    }
+    next();
+}
+router.put('/:id', validateToDoItemBody, (req,res) =>{
+    ToDoItems.findByIdAndUpdate({_id: req.params.id}, req.body, {new: true}, function(error, result){
+        if (error){
+            console.log(error);
+        }
+        else if(result === undefined){
+            res.status(404).send("404, Error, to do item not found");
+
+        }
+        else{
+            res.status(200).send(result);
+        }
+    })
+});
+
 
 
 module.exports = router;
